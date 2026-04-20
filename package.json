@@ -1,0 +1,31 @@
+{
+  "name": "storefront",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "build": "npx tsc",
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.ts",
+    "watch": "ts-watch --onSuccess \"npm run start\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "body-parser": "^2.2.2",
+    "express": "^5.2.1",
+    "node": "^24.15.0",
+    "pg": "^8.20.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.6.0",
+    "@types/pg": "^8.20.0",
+    "nodemon": "^3.1.14",
+    "ts-node": "^10.9.2",
+    "ts-watch": "^1.0.8",
+    "typescript": "^6.0.3"
+  }
+}
