@@ -33,6 +33,7 @@ const create = async (req: Request, res: Response) => {
     const newArticle = await store.create(article);
     res.json(newArticle);
   } catch (err) {
+    console.log("CREATE ARTICLE ERROR:", err);
     res.status(400);
     res.json(err);
   }
@@ -55,4 +56,4 @@ const article_routes = (app: express.Application) => {
   app.delete('/articles/:id', destroy);
 };
 
-export default article_routes;
+export default article_routes; 
