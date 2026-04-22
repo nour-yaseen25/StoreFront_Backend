@@ -31,7 +31,7 @@ const address: string = "0.0.0.0:3000"
 const port = 3000;
 
 app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json());
 
 app.get('/', (_req, res) => {
   res.send('Server is running');
