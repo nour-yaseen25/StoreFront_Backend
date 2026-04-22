@@ -4,11 +4,11 @@
     // File Layout
     "rootDir": "./src",
     "outDir": "./dist",
+    "types": ["jasmine"],
 
     // Environment Settings
     // See also https://aka.ms/tsconfig/module
-
-    "types": [],
+    
     "target": "es2020",
     "module": "commonjs",
     "esModuleInterop": true,
