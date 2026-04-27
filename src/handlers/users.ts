@@ -1,6 +1,8 @@
 import express, { Request, Response } from 'express';
 import { User, UserStore } from '../models/user';
 import type { Article } from '../models/article';
+import { json } from 'body-parser';
+import jsonwebtoken from 'jsonwebtoken';
 
 const store = new UserStore();
 
@@ -32,7 +34,8 @@ const create = async (req: Request, res: Response) => {
     };
 
     const newUser = await store.create(user);
-    res.json(newUser);
+    const token =jsonwebtoken.sign({ user: newUser }, process.env.TOKEN_SECRET as string);
+    res.json(token);
   } catch (err) {
     console.log("CREATE USER ERROR:", err);
     res.status(400);

@@ -26,6 +26,7 @@ import bodyParser from 'body-parser'
 import cors from 'cors';
 import article_routes from './handlers/articles';
 import user_routes from './handlers/users';
+import mythical_routes from './handlers/mythical_weapons';
 
 const app: express.Application = express()
 const address: string = "0.0.0.0:3000"
@@ -40,6 +41,7 @@ app.get('/', (_req, res) => {
 
 article_routes(app);
 user_routes(app);
+mythical_routes(app);
 
 app.listen(port, () => {
   console.log(`Server started at http://localhost:${port}`);
