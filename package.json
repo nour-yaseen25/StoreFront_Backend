@@ -8,7 +8,7 @@
     "start": "node dist/server.js",
     "dev": "nodemon --exec ts-node src/server.ts",
     "watch": "ts-watch --onSuccess \"npm run start\"",
-    "test": "ENV=test && npx db-migrate --env test up && jasmine-ts && npx db-migrate db:drop test",
+    "test": "set \"ENV=test\"&& npm run build && npx db-migrate --env test up && npx jasmine && npx db-migrate db:drop storefront_test",
     "tsc": "tsc"
   },
   "keywords": [],
@@ -35,10 +35,10 @@
     "@types/node": "^25.6.0",
     "@types/pg": "^8.20.0",
     "cors": "^2.8.6",
-    "jasmine": "^6.2.0",
     "nodemon": "^3.1.14",
     "ts-node": "^10.9.2",
     "ts-watch": "^1.0.8",
+    
     "typescript": "^6.0.3"
   }
 }
