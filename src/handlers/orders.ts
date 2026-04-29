@@ -15,7 +15,7 @@ const index = async (_req: Request, res: Response) => {
 
 const show = async (req: Request, res: Response) => {
   try {
-    const order = await store.show( req.params.id as string);
+    const order = await store.show( req.params.id as unknown as number);
     res.json(order);
   } catch (err) {
     res.status(400);
@@ -26,7 +26,7 @@ const show = async (req: Request, res: Response) => {
 const create = async (req: Request, res: Response) => {
   try {
     const order: order = {
-      user_id: req.body.user_id,
+      user_id: req.body.user_id as unknown as number,
       status: req.body.status
     };
 
@@ -41,7 +41,7 @@ const create = async (req: Request, res: Response) => {
 
 const destroy = async (req: Request, res: Response) => {
   try {
-    const deletedOrder = await store.delete(req.params.id as string);
+    const deletedOrder = await store.delete(req.params.id as unknown as number);
     res.json(deletedOrder);
   } catch (err) {
     res.status(400);
@@ -50,8 +50,8 @@ const destroy = async (req: Request, res: Response) => {
 };
 const addproduct = async (req: Request, res: Response) => {
     try {
-        const orderId: string = req.params.id as string;
-        const productId: string = req.body.product_id;
+        const orderId: number = req.params.id as unknown as number;
+        const productId: number = req.body.product_id as unknown as number;
         const quantity: number = parseInt(req.body.quantity);
         const addedProduct = await store.addProduct(quantity, orderId, productId);
         res.json(addedProduct);
