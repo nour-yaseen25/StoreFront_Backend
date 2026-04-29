@@ -1,37 +1,72 @@
 
-# StoreFront — Node.js + Express + PostgreSQL API
+# StoreFront API
 
-This repository is an API backend implemented with Node.js, Express, and PostgreSQL. This README provides a clear, step-by-step guide to get the project running from zero, including database creation, migrations, Docker usage, environment variables, common commands, and troubleshooting tips.
+StoreFront is a Node.js, Express, and TypeScript REST API backed by PostgreSQL. It supports local development, database migrations with `db-migrate`, authentication with JWT, and automated tests with Jasmine. The project was primarily developed and verified against a local PostgreSQL installation; Docker is supported as an optional convenience, not a requirement.
 
-## Quick summary
-- Backend: http://localhost:3000
-- Postgres: localhost:5432
-- Main commands:
-	- Install dependencies: `npm install`
-	- Start dev server: `npm run dev`
-	- Build: `npm run build`
-	- Start built app: `npm start`
-	- Run tests: `npm test`
+## Overview
+
+This API provides the backend for a storefront application and includes routes for users, products, orders, articles, mythical weapons, and dashboard data. The codebase is structured for a typical TypeScript service workflow: source code in `src/`, compiled output in `dist/`, schema migrations under `migrations/`, and test execution through Jasmine.
 
 ## Prerequisites
+
+Before you begin, make sure the following are installed:
+
+- Node.js and npm
+- PostgreSQL 5432 running locally, or Docker if you prefer the containerized setup
 - Git
-- Node.js (v16+ recommended)
-- npm (bundled with Node.js)
-- Docker & Docker Compose (recommended for local Postgres)
+- A PostgreSQL client such as `psql` is recommended for creating databases and running manual checks
 
-If you cannot use Docker, install PostgreSQL locally and ensure it listens on `127.0.0.1:5432` or update `DB_HOST` accordingly.
+Project ports:
 
-## Repository layout (important files)
-- `src/` — TypeScript source code (server, handlers, models)
-- `migrations/` — db-migrate migrations and SQL files
-- `database.json` — db-migrate connection configurations (dev/test)
-- `docker-compose.yml` — convenience setup for Postgres
-- `package.json` — npm scripts and dependencies
+- Backend: `http://localhost:3000`
+- PostgreSQL: `localhost:5432`
 
-## Environment variables
-Copy or create a `.env` file in the project root. Example `.env` (do not commit secrets):
+## Clone And Install
 
+```bash
+git clone <repo-url>
+cd StoreFront
+npm install
 ```
+
+## Local PostgreSQL Setup Without Docker
+
+The project is expected to connect to a local PostgreSQL server on port `5432`.
+
+1. Install PostgreSQL and make sure the database service is running.
+2. Confirm you can connect with your database superuser, usually `postgres`.
+3. Create the application databases:
+
+```bash
+psql -h 127.0.0.1 -U postgres -c "CREATE DATABASE storefront;"
+psql -h 127.0.0.1 -U postgres -c "CREATE DATABASE storefront_test;"
+```
+
+4. Make sure the credentials in your `.env` file match the PostgreSQL user and password you intend to use.
+
+Important: `src/database.ts` reads connection details from `.env`, while `db-migrate` uses `database.json`. Keep both files aligned if you change the database user, password, host, or database names.
+
+## Optional Docker Setup
+
+Docker is not required, but you can use it if you want a disposable PostgreSQL container.
+
+1. Make sure Docker and Docker Compose are installed.
+2. Create the `.env` file shown below.
+3. Start PostgreSQL with Docker Compose:
+
+```bash
+docker-compose up -d
+```
+
+This exposes PostgreSQL on port `5432`.
+
+If you use Docker, you still need to create the `storefront` and `storefront_test` databases unless your container initialization already does that.
+
+## Environment Variables
+
+Create a `.env` file in the project root with the following values:
+
+```env
 ENV=dev
 DB_HOST=127.0.0.1
 DB_USER=postgres
@@ -43,127 +78,126 @@ BCRYPT_ROUNDS=10
 TOKEN_SECRET=replace_with_a_secure_jwt_secret
 ```
 
-- `ENV` — if set to `dev` the app connects to `DB_NAME`; otherwise it uses `DB_NAME_TEST` (see `src/database.ts`).
-- `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `DB_NAME_TEST` — Postgres connection settings.
-- `BCRYPT_PEPPER`, `BCRYPT_ROUNDS` — used for hashing passwords in `src/models/user.ts`.
-- `TOKEN_SECRET` — used to sign and verify JWT tokens for protected endpoints.
+Variable reference:
 
-Ensure environment variables are available when running the server (the code uses `dotenv`).
+- `ENV` controls which database the application uses. When it is `dev`, the app connects to `DB_NAME`. Any other value switches the app to `DB_NAME_TEST`.
+- `DB_HOST` is the PostgreSQL host. For a local installation, use `127.0.0.1`.
+- `DB_USER` is the PostgreSQL username.
+- `DB_PASSWORD` is the PostgreSQL password for that user.
+- `DB_NAME` is the development database name used by the app.
+- `DB_NAME_TEST` is the test database name used when `ENV=test`.
+- `BCRYPT_PEPPER` is appended to passwords before hashing and comparison.
+- `BCRYPT_ROUNDS` controls the bcrypt work factor used when hashing passwords.
+- `TOKEN_SECRET` is the secret used to sign and verify JWT tokens.
 
-## Setup from zero (recommended: Docker)
+## Database Creation
 
-1. Clone the repo and change into it:
-
-```bash
-git clone <repo-url>
-cd StoreFront
-```
-
-2. Create `.env` as shown above (update values as required).
-
-3. Start Postgres via Docker Compose:
+Create both databases before running migrations:
 
 ```bash
-docker-compose up -d
-```
-
-This will run a Postgres container and expose port `5432` on the host. The `docker-compose.yml` in this project maps container port `5432` to host `5432`.
-
-4. Install dependencies:
-
-```bash
-npm install
-```
-
-5. Create the databases used by the app (two databases: `storefront` and `storefront_test`). You can create them with `psql` from the host or using Docker:
-
-Using `psql` locally (example):
-
-```bash
-# connect as postgres user
 psql -h 127.0.0.1 -U postgres -c "CREATE DATABASE storefront;"
 psql -h 127.0.0.1 -U postgres -c "CREATE DATABASE storefront_test;"
 ```
 
-Or from inside the running Postgres container:
+If those databases already exist, you can keep them and proceed to migrations.
 
-```bash
-docker exec -it $(docker ps -q -f "ancestor=postgres") psql -U postgres -c "CREATE DATABASE storefront;"
-docker exec -it $(docker ps -q -f "ancestor=postgres") psql -U postgres -c "CREATE DATABASE storefront_test;"
-```
+## Migrations
 
-6. Run migrations to create the schema:
+Apply migrations for the development database:
 
 ```bash
 npx db-migrate up
 ```
 
-This uses `database.json` to connect to the `dev` database. To run migrations against the `test` environment (if required):
+Rollback the most recent migration:
+
+```bash
+npx db-migrate down
+```
+
+Run migrations against the test database:
 
 ```bash
 npx db-migrate --env test up
 ```
 
-7. Start the dev server:
+The `database.json` file contains the `dev` and `test` connection settings used by `db-migrate`.
+
+## Running The API
+
+Development mode with hot reload:
 
 ```bash
 npm run dev
 ```
 
-Server will be available at `http://localhost:3000`.
+Compile TypeScript:
 
-## Commands reference
-- `npm install` — install dependencies
-- `npm run dev` — start development server using `ts-node` + `nodemon` (hot reload)
-- `npm run build` — transpile TypeScript to `dist/` (`npx tsc`)
-- `npm start` — run `node dist/server.js` (use after `npm run build`)
-- `npx db-migrate up` — apply migrations (use `--env test` for test DB)
-- `npx db-migrate down` — rollback last migration
-- `npm test` — runs test flow defined in `package.json` (build, migrate test DB, run Jasmine tests, drop test DB)
+```bash
+npm run build
+```
 
-## Migration flow
-1. Create/modify SQL migration files under `migrations/sqls/` and corresponding migration wrapper in `migrations/`.
-2. Run `npx db-migrate up` to apply migrations.
-3. Verify schema with `psql` or a DB client.
-4. To rollback a migration: `npx db-migrate down`.
+Run the compiled application:
 
-Notes:
-- `database.json` contains connection configuration for `dev` and `test`. Keep it synchronized with your `.env` or adjust `db-migrate` options if you prefer environment-driven config.
+```bash
+npm start
+```
+
+Run the automated test suite:
+
+```bash
+npm test
+```
+
+## Testing
+
+The test flow is designed around a separate database and Jasmine.
+
+- Tests run with `ENV=test`.
+- The application connects to `DB_NAME_TEST` during test execution.
+- Jasmine is the test runner.
+- The test script builds the project, runs migrations against `storefront_test`, executes Jasmine, and then drops the test database.
+
+If tests fail unexpectedly, first verify that `storefront_test` exists and that your PostgreSQL credentials are correct.
+
+## Project Structure
+
+- `src/` contains the TypeScript source code for the API, handlers, models, and services.
+- `migrations/` contains db-migrate files and the SQL used to create and remove schema objects.
+- `database.json` contains the dev and test database connection settings for migrations.
+- `docker-compose.yml` provides an optional PostgreSQL container.
+- `package.json` defines the scripts used to build, run, and test the project.
 
 ## Troubleshooting
-Below are common issues and recommended fixes.
 
-- Database connection refused / cannot connect
-	- Ensure Postgres is running and reachable at `DB_HOST:5432`.
-	- Confirm credentials (`DB_USER`, `DB_PASSWORD`) match the Postgres instance.
-	- If using Docker, check `docker-compose ps` and container logs: `docker-compose logs postgres`.
+If you hit a common setup issue, check the following:
 
-- Port 3000 already in use
-	- Check for running processes using port 3000: on Windows `netstat -ano | findstr :3000`, then stop the process or change the `port` constant in `src/server.ts`.
+- Database connection errors: confirm PostgreSQL is running, the host is reachable on port `5432`, and `DB_HOST`, `DB_USER`, and `DB_PASSWORD` are correct.
+- Wrong password or user: update both `.env` and `database.json` so the application and `db-migrate` use the same credentials.
+- Port already in use: stop the process using port `3000` or change the port in `src/server.ts`.
+- Migration errors: confirm the target database exists, the user has permission to create tables, and the migration SQL is valid.
+- JWT invalid token: verify `TOKEN_SECRET` has not changed. Tokens signed with one secret will not validate against another.
 
-- Missing environment variables
-	- The app depends on `DB_*`, `BCRYPT_*`, and `TOKEN_SECRET`. If they are missing, create a `.env` file and restart the server.
+## Security Notes
 
-- Migrations fail with permissions or relation errors
-	- Verify the target database exists and the connecting user has permissions to create tables.
-	- Inspect the SQL in `migrations/sqls/` for syntax errors.
+- Keep `.env` out of version control. The repository already ignores `.env` in `.gitignore`.
+- Passwords are hashed with bcrypt before being stored.
+- JWT signing and verification use `TOKEN_SECRET`; treat it as a secret value and do not commit it.
 
-- Tests failing due to DB state
-	- The test script runs migrations against `storefront_test`. Ensure that DB exists and credentials are correct.
+## Useful Commands
 
-- JWT / auth failures
-	- Ensure `TOKEN_SECRET` matches the secret used to sign tokens. Tokens created with a different secret will not verify.
+```bash
+npm install
+npm run dev
+npm run build
+npm start
+npm test
+npx db-migrate up
+npx db-migrate down
+npx db-migrate --env test up
+```
 
-If you encounter an error not covered here, paste the full error and the command you ran and we can investigate further.
+## Notes For Reviewers
 
-## Production considerations (brief)
-- Do not store secrets in `.env` files in source control. Use a secrets manager or environment config on the host.
-- Configure connection pooling and TLS for production Postgres connections.
-- Use a process manager (PM2, systemd) or a container orchestration platform to run the built app.
-
-## Further reading
-- See `src/` for handlers, models and the data access patterns used in this project.
-
----
-If you want, I can also add a `.env.example` file and a short `CONTRIBUTING.md` with development guidelines.
+The service listens on port `3000` and expects PostgreSQL on port `5432`. If you are validating the project from scratch, the minimum path is: install dependencies, create `storefront` and `storefront_test`, run migrations, and then start the app or execute the test suite.
 
