@@ -201,3 +201,15 @@ npx db-migrate --env test up
 
 The service listens on port `3000` and expects PostgreSQL on port `5432`. If you are validating the project from scratch, the minimum path is: install dependencies, create `storefront` and `storefront_test`, run migrations, and then start the app or execute the test suite.
 
+## Developed By
+
+Nour Ashraf Yaseen
+
+Full Stack JavaScript Developer (In Progress)
+
+GitHub: https://github.com/nour-yaseen25
+
+## Notes / Practice
+
+This project was built incrementally by following the course exercises step by step, with each stage extending the previous one. The files include simple comments to explain each step clearly, which makes the code easier to revisit and understand later.
+
