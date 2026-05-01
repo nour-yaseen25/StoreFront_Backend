@@ -49,9 +49,19 @@ order_routes(app);
 product_routes(app);
 dashboard_routes(app);
 
+// Starting the server only if this file is run directly, allowing it to be imported without starting the server
+// This is useful for testing or when the server is used as a module in other parts of the application
+// Only start the server if this file is executed directly (e.g. `node server.js`)
+// When the file is imported (for example in tests with Supertest), the server will NOT start
+// This prevents port conflicts and allows testing the Express app without running a real server
 
-app.listen(port, () => {
-  console.log(`Server started at http://localhost:${port}`);
-});
+if (require.main === module) {
+  app.listen(port, () => {
+    console.log(`Server started at http://${address}`);
+  });
+}
+
+// Exporting the app for use in testing or other modules
+// This allows the server to be imported and used in test files without starting the server multiple times
 
 export default app;
