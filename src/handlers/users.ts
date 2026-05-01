@@ -18,7 +18,13 @@ const index = async (_req: Request, res: Response) => {
 
 const show = async (req: Request, res: Response) => {
   try {
-    const user = await store.show( req.params.id as string);
+    const user = await store.show(req.params.id as string);
+
+    if (!user) {
+      res.status(400).json({ error: 'User not found' });
+      return;
+    }
+
     res.json(user);
   } catch (err) {
     res.status(400);
@@ -37,7 +43,7 @@ const create = async (req: Request, res: Response) => {
     const token =jsonwebtoken.sign({ user: newUser }, process.env.TOKEN_SECRET as string);
     res.json(token);
   } catch (err) {
-    console.log("CREATE USER ERROR:", err);
+   // console.log("CREATE USER ERROR:", err);
     res.status(400);
     res.json(err);
   }
@@ -46,6 +52,12 @@ const create = async (req: Request, res: Response) => {
 const destroy = async (req: Request, res: Response) => {
   try {
     const deletedUser = await store.delete(req.params.id as string);
+    
+    if (!deletedUser) {
+      res.status(400).json({ error: 'User not found' });
+      return;
+    }
+
     res.json(deletedUser);
   } catch (err) {
     res.status(400);
@@ -54,6 +66,11 @@ const destroy = async (req: Request, res: Response) => {
 };
 const authenticate = async (req: Request, res: Response) => {
     try {
+        if (!req.body.username || !req.body.password) {
+            res.status(400).json({ error: 'Username and password are required' });
+            return;
+        }
+
         const user = await store.authenticate(req.body.username, req.body.password);
         if (user) {
             res.json(user);
