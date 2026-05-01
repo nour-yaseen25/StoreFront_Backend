@@ -7,6 +7,21 @@ StoreFront is a Node.js, Express, and TypeScript REST API backed by PostgreSQL. 
 
 This API provides the backend for a storefront application and includes routes for users, products, orders, articles, mythical weapons, and dashboard data. The codebase is structured for a typical TypeScript service workflow: source code in `src/`, compiled output in `dist/`, schema migrations under `migrations/`, and test execution through Jasmine.
 
+## Technologies & Packages Used
+
+- Node.js: The runtime environment used to run the server-side JavaScript application.
+- Express: The web framework used to build the RESTful API routes and handle HTTP requests and responses.
+- TypeScript: Adds static typing and better tooling, which improves code quality and makes the backend easier to maintain.
+- PostgreSQL: The relational database used to store application data such as users, products, orders, and articles.
+- `pg`: The PostgreSQL client library used by the Node.js app to connect to and query the database.
+- `db-migrate`: Used to create, run, and roll back database migrations so the schema stays consistent across environments.
+- `dotenv`: Loads environment variables from the `.env` file so local development settings stay outside the source code.
+- `bcrypt`: Hashes user passwords before storing them, which improves security.
+- JSON Web Token (JWT): Used to sign authentication tokens and protect secure routes.
+- Jasmine: The test framework used to run the model and endpoint specs.
+- Supertest: Used to test API endpoints through HTTP requests without starting a real server.
+- `nodemon` / `ts-node`: Development tools that make local work easier by restarting the server automatically and running TypeScript files directly.
+
 ## Prerequisites
 
 Before you begin, make sure the following are installed:
@@ -151,14 +166,38 @@ npm test
 
 ## Testing
 
-The test flow is designed around a separate database and Jasmine.
+The test flow is designed around a separate database, Jasmine, and Supertest.
 
-- Tests run with `ENV=test`.
-- The application connects to `DB_NAME_TEST` during test execution.
-- Jasmine is the test runner.
-- The test script builds the project, runs migrations against `storefront_test`, executes Jasmine, and then drops the test database.
+- Model tests verify the store classes in `src/models/`.
+- Endpoint tests verify the HTTP routes for users, products, and orders.
+- All API routes defined in `REQUIREMENTS.md` are covered by at least one test across the suite.
+- Jasmine is the test framework used to run the specs.
+- Supertest is used to exercise the Express endpoints without starting a real server.
+- Test execution uses the separate PostgreSQL database `storefront_test`.
 
-If tests fail unexpectedly, first verify that `storefront_test` exists and that your PostgreSQL credentials are correct.
+How the test workflow runs:
+
+1. The test script sets `ENV=test`.
+2. The application reads `DB_NAME_TEST` from `.env` and connects to the test database.
+3. Migrations run before the specs so the test schema is always created from scratch.
+4. The specs clean tables with `TRUNCATE` to keep each test isolated.
+5. Supertest imports the exported Express `app`, so the server itself is not started during tests.
+
+If tests fail unexpectedly, first verify that `storefront_test` exists, your PostgreSQL credentials are correct, and the `.env` values match `database.json`.
+
+## Endpoint Testing
+
+Every API endpoint has at least one associated test in the Jasmine suite.
+
+The endpoint specs validate both response bodies and HTTP status codes so the tests cover more than simple route existence. In practice, this means the suite checks that successful requests return the expected data and that basic error cases return the proper status when applicable.
+
+The endpoint coverage includes users, products, orders, articles, mythical weapons, and dashboard routes, including protected flows that require a valid JWT where applicable.
+
+## Server Behavior for Testing
+
+The server uses `require.main === module` in `src/server.ts` so the app only calls `listen()` when the file is executed directly.
+
+This matters for tests because Supertest imports the Express app object directly. If the server started automatically during import, the test suite would open an extra listener and make isolation harder. With the current setup, the app can be tested in memory while normal `npm start` behavior still works as expected.
 
 ## Project Structure
 
