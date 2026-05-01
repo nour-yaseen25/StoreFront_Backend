@@ -88,17 +88,18 @@ export class UserStore {
       const sql = 'SELECT * FROM users WHERE username=($1)'
       // @ts-ignore
       const conn = await Client.connect()
-        const result = await conn.query(sql, [username])
+      const result = await conn.query(sql, [username])
 
-        if (result.rows.length) {
-          const user = result.rows[0]
-            if (bcrypt.compareSync(password + process.env.BCRYPT_PEPPER, user.password)) {
-                return user
-            }
+      if (result.rows.length) {
+        const user = result.rows[0]
+        if (bcrypt.compareSync(password + process.env.BCRYPT_PEPPER, user.password)) {
+          conn.release()
+          return user
         }
+      }
 
-        conn.release()
-        return null
+      conn.release()
+      return null
 
     } catch (err) {
         throw new Error(`Could not authenticate user ${username}. Error: ${err}`)
