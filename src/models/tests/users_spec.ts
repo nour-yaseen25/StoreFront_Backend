@@ -1,4 +1,4 @@
-import request from 'supertest';
+import request from 'supertest'; // Importing the request function from supertest to make HTTP requests to our server
 import app from '../../server';
 import client from '../../database';
 import jsonwebtoken from 'jsonwebtoken';
